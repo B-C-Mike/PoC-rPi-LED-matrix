@@ -66,6 +66,7 @@ max_framebuffers=2
 dpi_output_format=0xc017
 dpi_timings= 240 0 10 20 10 360 0 1 1 1 0 0 0 60 0 40000000 3
 #            ^ horizontal    ^ vertical             ^ pixel clock
+
 # Additional overlays and parameters are documented /boot/overlays/README
 ```
 Where: 
@@ -96,9 +97,27 @@ Hardware setup.
 
 Theory of operation. 
 -
+- Software does NOT send any signal to the panel (via GPIO pins). 
+- Software makes the data conversion from standard video buffer (width * height * RGB) to bitplanes, assembly them together, add clock and control signals, then send it all to the framebuffer. 
+- Conversion is done once per frame. DPI interface will take care of refreshing LED matrix. 
+- LED panel requires 2 DPI pixels per 1 LED. Both with the same data. Each with opposite state of the CLK line (software generated clock). 
+- LED panel requires 2 DPI lines to drive 1 line of matrix: 
+  - DPI line 1 sends data to line 1 of the panel. 
+  - DPI line 2 drives the ENable pin for line 1 of the panel (brightness control). 
+  - DPI line 2 sends data to line 2 of the panel. 
+  - DPI line 3 sends data to line 2 of the panel. 
+  - DPI lines 3 and 4 controls line 3 of the panel. 
+  - ...
+- 16 lines of framebuffer covers whole screen (1/16 drive). 16 lines are considered as single bitplane. 
+- Next bitplane can be displayed as 16 lines with brightness reduced by half or as 32 lines (display the same content, double the brightness). 
+- Framebuffer have to be big enough to fit all lines and all horizontal pixels. Otherwise software will crash. 
+- It is possible to calculate framebuffer size and set it via command, but setting that in config.txt is way easier. 
+
 
 Example 1. Can I have some output. 
-...
+-
+- 1-line.py
+This is the simplest test for the idea. Also a sandbox to play with. Software assembles few example lines. Your task is to push them into the framebuffer. If it works, play with it more. If it doesn't work and You changed any piece of generating code then You have to apply same changes to the next examples. 
 
 Example 2. Displaying test pattern. 
 ...
