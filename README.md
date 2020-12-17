@@ -139,9 +139,6 @@ Takes 1.5 second on rPi 2 (single core load)
 
 
 
-![](img/3c.jpg)
-![](img/3d.jpg)
-
 Example 2. Displaying test pattern. `2-rainbow.py`
 -
 4 bitplanes can create simple rainbow pattern. Each line have the same brightness settings. Bit 4 is repeated once, bit 5 twice, bit 6 - 4 times, bit 7 (MSB) - 8 times. There are also 13 empty lines to counteract image offset created by 4040 binary counter and the way hardware works. 
