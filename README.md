@@ -114,21 +114,58 @@ Theory of operation.
 - It is possible to calculate framebuffer size and set it via command, but setting that in config.txt is way easier. 
 
 
-Example 1. Can I have some output. 
+Example 1. Can I have some output. `1-line.py`
 -
-- 1-line.py
 This is the simplest test for the idea. Also a sandbox to play with. Software assembles few example lines. Your task is to push them into the framebuffer. If it works, play with it more. If it doesn't work and You changed any piece of generating code then You have to apply same changes to the next examples. 
+![](img/1a_first_line.jpg)
+^ Just a single line. I'm proud it's working. 
 
-Example 2. Displaying test pattern. 
-...
+![](img/1b_dashes.jpg)
+^ I can generate and display dots, dashes, anything binary (8 colors). 
 
-Example 3. Mirror main screen. 
-...
+![](img/1c_rainbow.jpg)
+^ Simple rainbow using lookup table. 
 
-Example 4. Gain some speed. 
+![](img/1d_gradient.jpg)
+```f.write(WW_line)
+for n in range (1, 12):
+    for line in range(0, n):
+        f.write(WW_line) 
+    for line in range(n, 16):
+        f.write(bright_line) 
+```
+^ This is how I can get gradient. Just write more lines in the same place of the screen. 
+Takes 1.5 second on rPi 2 (single core load)
+
+
+
+![](img/3c.jpg)
+![](img/3d.jpg)
+
+Example 2. Displaying test pattern. `2-rainbow.py`
+-
+4 bitplanes can create simple rainbow pattern. Each line have the same brightness settings. Bit 4 is repeated once, bit 5 twice, bit 6 - 4 times, bit 7 (MSB) - 8 times. There are also 13 empty lines to counteract image offset created by 4040 binary counter and the way hardware works. 
+![](img/2.jpg)
+
+Example 3. Mirror main screen. `3-mirror-fb0.py`
+-
+Let's just grab a piece of image from main framebuffer (fb0), convert and throw into panel (fb1). 
+This demo gives me about 0.7 FPS (1.3s) to convert 2048 pixels at 24b color depth (8b per color). 
+With 12b color depth (4b per color, 4 bitplanes) speed is up to 1.4 FPS on rPi 2 (single core). 
+Refresh rate of the screen is still around 400 hz for this single panel setup. Not kidding. DPI interface just spits out the bytes by itself. 
+
+Desktop (LCD monitor)  | Piece of desktop displayed on LED matrix
+-----------------------|------------------------------
+![](img/3a.jpg)        |![](img/3b.jpg)
+-----------------------|------------------------------
+![](img/3c.jpg)        |![](img/3d.jpg)
+
+Example 4. Gain some speed with NumPy. 
+-
 ...
 
 Example 5. NumPy'fy everything. 
+-
 ...
 
 Calculating the speed. 
