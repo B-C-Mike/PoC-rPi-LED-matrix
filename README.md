@@ -157,15 +157,42 @@ Desktop (LCD monitor)  | Piece of desktop displayed on LED matrix
 -----------------------|------------------------------
 ![](img/3c.jpg)        |![](img/3d.jpg)
 
-Example 4. Gain some speed with NumPy. 
+Example 4. Gain some speed with NumPy. `4-speed.py`
 -
-...
+Basically python is SLOW. Every loop cost time, every command cost time. What's the alternative? 
+NumPy. Can do a lot with single python command, just faster. By rewriting code and eliminating loops i bumped the spped incrementally to 10, 25 and 40 FPS (this version is included here). Now i have usable speed to playback video (yess, screen capture from /dev/fb0) directly from 'tube. Good job rPi 2. 
+BTW, please don't judge me by this code. I'm not proud of it. Just leave it as one of the steps. 
 
-Example 5. NumPy'fy everything. 
+Example 5. NumPy'fy everything. `5-numpify.py` and `6-improvements.py`
 -
-...
+Rewriting time again. Added scaling opion. Removed as much as possible from main loop and pre-generate as much look-up tables as possible. 100 FPS speed for worst case scenario, up to 150FPS with no scaling and reduced output scale. Now it's time to say *enough* and write documentation. 
+Both 5 and 6th revision works the same. 6 just looks a bit better and some options are easier to change. 
+
+
 
 Calculating the speed. 
+- 
+- Datasheet says 35Mhz max, in practice it should be around 40Mhz. I used 20Mhz and let's assume this is the best speed for the LED matrix. To achieve this, set the DPI clock to twice the speed (40Mhz or more). 
+- Single matrix requires (64 lines * 2 clk * 16 lines) write cycles per bitplane. That gives 2k writes for single bitplane (64x32, 2k LEDs matrix). 
+- Each bitplane need it's own unique weight (factor of 2). Image with 4bit color depth can have weights of 1, 1/2, 1/4, 1/8 (dim screen) or 8, 4, 2, 1 (repeat single bitplane without dimming, slow). First option takes 8k write cycles and refresh rate of about 5khz, second one 30k write cycles and 1khz refresh rate. 
+For 8bit color the results are 2.5khz VS 78hz. So let's stick with PWM brightness control, dim screen and faster refresh rate. 
+- Due to hardware limitations, there have to be extra bitplane "black" and some time is wasted on synchronization. 
+- Assuming 32k pixels driven of single channel can result 40Mhz / 32k pixels / 9 bitplanes = 135hz refresh rate. Alternatively 240hz for 35Mhz panel clock (70Mhz DPI clock) and 270hz refresh rate for 40Mhz panel clock. Haven't experimented with maximum clock frequency, but DPI hardware gives a lot of fine tuning possibility. 
+- BTW, please calculate length of single chain and set DPI horizontal resolution a bit longer. 
+
+Calculating brightness. 
+-
+- Brightness control? Panel have to be dim during synchronization time (about 10% of time for small panel chains, closer to 5% for longer chains). 
+- If brightness is controlled by time, weakest bitplane is displayed once (1) while strongest is showed many times (128 for 8b color depth). This technique steals time (slow refresh rate) but allows for full output power. 
+- If brightness is controlled by PWM, strongest bitplane is displayed fully (1) while weakest is dimmed by PWM (1/128 power for 8b color depth). This technique steals brightness. Overall brightness is about 1 / color depth, like 12% of full brightness for 8b color depth. Not best, but no place to shine. 
+- Compromise, show some bitplanes multiple times (weight 8, 4, 2, 1) and rest with PWM (1/2, 1/4, 1/8, 1/16). This reduces maximum brightness to about 70% and reduces refresh speed to about 40% of PWM approach. OK for me. 
+- BTW, DPI vertical resolution is strictly related number of displayed bitplanes. Too much lines will result in dimmer panel and lower refresh rate. Not ideal. 
+
 Summary. 
-...
+- 
+- It works! 
+- It steals all GPIO :( 
+DPI24 interface sets all pins to ALT2 function at bootup. Any unused pin can be manually changed back to default function, but all GPIO will be set as output low for the bootup time. 
+- Only 24 pins can be freely controlled. Remaining 4 can be used with preassigned function or not used at all. 
+- Where are signals for ABCD row decoder? All comes from 4040 binary counter, driven by Hsync and Vsync. This greatly simplifies the code (and i'm too lazy to generate all that signals proper way). Feel free to fix this. 
 
