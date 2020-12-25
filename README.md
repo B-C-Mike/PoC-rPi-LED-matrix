@@ -168,7 +168,15 @@ Example 5. NumPy'fy everything. `5-numpify.py` and `6-improvements.py`
 Rewriting time again. Added scaling opion. Removed as much as possible from main loop and pre-generate as much look-up tables as possible. 100 FPS speed for worst case scenario, up to 150FPS with no scaling and reduced output scale. Now it's time to say *enough* and write documentation. 
 Both 5 and 6th revision works the same. 6 just looks a bit better and some options are easier to change. 
 
+Example 7. Make it work on standard hardware `7-standard-pcb.py`
+-
+- Added code to generate ABCD signal and latch impulse. 
+- Rewrite pinout definitions to work on ([Active3 adapter][ad]) (only channel 1, only 64x32px single panel). 
+- Added few video glitches :(
+- Make sure you modify /boot/config.txt to: `dpi_timings= 240 0 00 00 00 360 0 00 00 00 0 0 0 60 0 32000000 3`
 
+
+[ad]: https://github.com/hzeller/rpi-rgb-led-matrix/tree/master/adapter/active-3
 
 Calculating the speed. 
 - 
